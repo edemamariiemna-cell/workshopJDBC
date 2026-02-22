@@ -2,6 +2,7 @@ package gui;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -36,59 +37,50 @@ public class MainGUI extends Application {
     private TextField mFat = new TextField();
     private TextField mScore = new TextField();
     private TextField mNotes = new TextField();
-    
+
     // LABELS
-    private Label selectedPlanLabel = new Label("Aucun plan sélectionné");
+    private Label selectedPlanLabel = new Label("⚠ Aucun plan sélectionné");
     private Label planError = new Label();
     private Label mealError = new Label();
 
     @Override
     public void start(Stage stage) {
-        
-        // Configuration de la validation
+
         setupValidation();
-        
+
         VBox root = new VBox(20);
         root.setPadding(new Insets(20));
         root.setStyle("-fx-background-color: #f4f6f9;");
 
-        // SECTION PLANS
         setupPlanTable();
         VBox planSection = createPlanSection();
-        
-        // SECTION REPAS
+
         setupMealTable();
         VBox mealSection = createMealSection();
-        
-        // SÉPARATEUR
-        Separator separator = new Separator();
-        separator.setPadding(new Insets(10, 0, 10, 0));
 
-        root.getChildren().addAll(planSection, separator, mealSection);
+        root.getChildren().addAll(planSection, new Separator(), mealSection);
 
-        // LISTENER POUR LA SÉLECTION DE PLAN
+        // LISTENER PLAN
         tablePlans.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
-                // Remplir le formulaire plan
                 pGoal.setText(sel.getGoalType());
                 pCal.setText(String.valueOf(sel.getCalorieTarget()));
                 pProt.setText(String.valueOf(sel.getProteinTarget()));
                 pCarb.setText(String.valueOf(sel.getCarbTarget()));
                 pFat.setText(String.valueOf(sel.getFatTarget()));
-                
-                selectedPlanLabel.setText("Plan sélectionné : " + sel.getGoalType() + " (" + sel.getCalorieTarget() + " kcal)");
+
+                selectedPlanLabel.setText("✓ Plan sélectionné : " + sel.getGoalType() + " (" + sel.getCalorieTarget() + " kcal)");
                 selectedPlanLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
                 
-                // Charger les repas associés
                 refreshMeals(sel.getId());
             } else {
-                selectedPlanLabel.setText("Aucun plan sélectionné");
+                selectedPlanLabel.setText("⚠ Aucun plan sélectionné");
                 selectedPlanLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 tableMeals.getItems().clear();
             }
         });
 
-        // LISTENER POUR LA SÉLECTION DE REPAS
+        // LISTENER MEAL
         tableMeals.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) {
                 mName.setText(sel.getMealType());
@@ -101,29 +93,27 @@ public class MainGUI extends Application {
             }
         });
 
-        // Chargement initial
         refreshPlans();
 
         Scene scene = new Scene(root, 1300, 900);
-        
         stage.setTitle("Gestion Nutritionnelle - CRUD Complet");
         stage.setScene(scene);
         stage.show();
     }
-    
+
     // ======================================================
-    // SECTION PLAN
+    // SECTION PLAN - SANS BOUTON EFFACER
     // ======================================================
-    
+
     private VBox createPlanSection() {
-        // Formulaire Plan
+
         GridPane planForm = new GridPane();
         planForm.setHgap(10);
         planForm.setVgap(10);
         planForm.setPadding(new Insets(15));
         planForm.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
 
-        pGoal.setPromptText("Objectif (ex: prise de masse)");
+        pGoal.setPromptText("Objectif");
         pCal.setPromptText("Calories");
         pProt.setPromptText("Protéines");
         pCarb.setPromptText("Glucides");
@@ -131,71 +121,51 @@ public class MainGUI extends Application {
 
         planForm.add(new Label("Objectif:"), 0, 0);
         planForm.add(pGoal, 1, 0);
-        planForm.add(new Label("Calories (kcal):"), 0, 1);
+        planForm.add(new Label("Calories:"), 0, 1);
         planForm.add(pCal, 1, 1);
-        planForm.add(new Label("Protéines (g):"), 0, 2);
+        planForm.add(new Label("Protéines:"), 0, 2);
         planForm.add(pProt, 1, 2);
-        planForm.add(new Label("Glucides (g):"), 0, 3);
+        planForm.add(new Label("Glucides:"), 0, 3);
         planForm.add(pCarb, 1, 3);
-        planForm.add(new Label("Lipides (g):"), 0, 4);
+        planForm.add(new Label("Lipides:"), 0, 4);
         planForm.add(pFat, 1, 4);
-        
-        // Boutons Plan
+
+        // BOUTONS SANS EFFACER
         Button addPlan = new Button("Ajouter");
         Button modPlan = new Button("Modifier");
         Button delPlan = new Button("Supprimer");
-        Button clearPlan = new Button("Effacer");
         
         styleButton(addPlan, "#4CAF50");
         styleButton(modPlan, "#2196F3");
         styleButton(delPlan, "#f44336");
-        styleButton(clearPlan, "#9E9E9E");
-        
-        HBox planButtons = new HBox(10, addPlan, modPlan, delPlan, clearPlan);
-        planButtons.setPadding(new Insets(10, 0, 0, 0));
-        
-        // Message d'erreur
+
+        HBox buttons = new HBox(10, addPlan, modPlan, delPlan);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.setPadding(new Insets(5, 0, 0, 0));
+
         planError.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
-        
-        VBox planFormBox = new VBox(5, 
-            new Label("GESTION DES PLANS NUTRITIONNELS"), 
-            planForm, 
-            planButtons,
-            planError
-        );
-        
-        // Tableau des Plans
-        Label planTableLabel = new Label("LISTE DES PLANS");
-        planTableLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        
-        VBox planTableBox = new VBox(10, 
-            planTableLabel, 
-            tablePlans
-        );
-        planTableBox.setPrefWidth(800);
-        
-        // Mise en page horizontale
-        HBox planContent = new HBox(20, planFormBox, planTableBox);
-        HBox.setHgrow(planTableBox, Priority.ALWAYS);
-        
-        // Actions
+
+        VBox formBox = new VBox(8, planForm, buttons, planError);
+
         addPlan.setOnAction(e -> handleAddPlan());
         modPlan.setOnAction(e -> handleUpdatePlan());
         delPlan.setOnAction(e -> handleDeletePlan());
-        clearPlan.setOnAction(e -> clearPlanForm());
-        
-        Label sectionTitle = new Label("PLANS NUTRITIONNELS");
-        sectionTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-        
-        return new VBox(10, sectionTitle, planContent);
+
+        VBox tableBox = new VBox(10, new Label("LISTE DES PLANS"), tablePlans);
+        tableBox.setPrefWidth(800);
+
+        HBox content = new HBox(20, formBox, tableBox);
+        HBox.setHgrow(tableBox, Priority.ALWAYS);
+
+        return new VBox(10, new Label("PLANS NUTRITIONNELS"), content);
     }
-    
+
     // ======================================================
-    // SECTION REPAS
+    // SECTION REPAS - SANS BOUTON EFFACER
     // ======================================================
-    
+
     private VBox createMealSection() {
-        // Formulaire Repas
+
         GridPane mealForm = new GridPane();
         mealForm.setHgap(10);
         mealForm.setVgap(10);
@@ -207,8 +177,8 @@ public class MainGUI extends Application {
         mProt.setPromptText("Protéines");
         mCarb.setPromptText("Glucides");
         mFat.setPromptText("Lipides");
-        mScore.setPromptText("Score (0-100)");
-        mNotes.setPromptText("Notes...");
+        mScore.setPromptText("Score");
+        mNotes.setPromptText("Notes");
 
         mealForm.add(new Label("Repas:"), 0, 0);
         mealForm.add(mName, 1, 0);
@@ -220,303 +190,179 @@ public class MainGUI extends Application {
         mealForm.add(mCarb, 1, 3);
         mealForm.add(new Label("Lipides:"), 0, 4);
         mealForm.add(mFat, 1, 4);
-        mealForm.add(new Label("Score Santé:"), 0, 5);
+        mealForm.add(new Label("Score:"), 0, 5);
         mealForm.add(mScore, 1, 5);
         mealForm.add(new Label("Notes:"), 0, 6);
         mealForm.add(mNotes, 1, 6);
 
-        // Boutons Repas
+        // BOUTONS SANS EFFACER
         Button addMeal = new Button("Ajouter Repas");
         Button modMeal = new Button("Modifier Repas");
         Button delMeal = new Button("Supprimer Repas");
-        Button clearMeal = new Button("Effacer");
-        
+
         styleButton(addMeal, "#4CAF50");
         styleButton(modMeal, "#2196F3");
         styleButton(delMeal, "#f44336");
-        styleButton(clearMeal, "#9E9E9E");
-        
-        HBox mealButtons = new HBox(10, addMeal, modMeal, delMeal, clearMeal);
-        mealButtons.setPadding(new Insets(10, 0, 0, 0));
-        
-        // Message d'erreur
+
+        HBox mealButtons = new HBox(10, addMeal, modMeal, delMeal);
+        mealButtons.setAlignment(Pos.CENTER);
+        mealButtons.setPadding(new Insets(5, 0, 0, 0));
+
         mealError.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
-        
-        VBox mealFormBox = new VBox(5, 
-            new Label("GESTION DES REPAS"), 
-            selectedPlanLabel,
-            mealForm, 
-            mealButtons,
-            mealError
+
+        VBox mealFormBox = new VBox(8,
+                new Label("GESTION DES REPAS"),
+                selectedPlanLabel,
+                mealForm,
+                mealButtons,
+                mealError
         );
-        
-        // Tableau des Repas
-        Label mealTableLabel = new Label("REPAS ASSOCIÉS AU PLAN SÉLECTIONNÉ");
-        mealTableLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        
-        VBox mealTableBox = new VBox(10, 
-            mealTableLabel, 
-            tableMeals
-        );
-        mealTableBox.setPrefWidth(800);
-        
-        // Mise en page horizontale
-        HBox mealContent = new HBox(20, mealFormBox, mealTableBox);
-        HBox.setHgrow(mealTableBox, Priority.ALWAYS);
-        
-        // Actions
+
         addMeal.setOnAction(e -> handleAddMeal());
         modMeal.setOnAction(e -> handleUpdateMeal());
         delMeal.setOnAction(e -> handleDeleteMeal());
-        clearMeal.setOnAction(e -> clearMealForm());
-        
-        Label sectionTitle = new Label("REPAS QUOTIDIENS");
-        sectionTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-        
-        return new VBox(10, sectionTitle, mealContent);
+
+        VBox mealTableBox = new VBox(10,
+                new Label("REPAS ASSOCIÉS AU PLAN SÉLECTIONNÉ"),
+                tableMeals
+        );
+        mealTableBox.setPrefWidth(800);
+
+        HBox mealContent = new HBox(20, mealFormBox, mealTableBox);
+        HBox.setHgrow(mealTableBox, Priority.ALWAYS);
+
+        return new VBox(10, new Label("REPAS QUOTIDIENS"), mealContent);
     }
-    
+
     // ======================================================
-    // CONFIGURATION DES TABLES
+    // TABLES
     // ======================================================
-    
+
     private void setupPlanTable() {
-        TableColumn<NutritionPlan, String> col1 = new TableColumn<>("Objectif");
-        col1.setCellValueFactory(new PropertyValueFactory<>("goalType"));
-        col1.setPrefWidth(150);
-        
-        TableColumn<NutritionPlan, Integer> col2 = new TableColumn<>("Calories");
-        col2.setCellValueFactory(new PropertyValueFactory<>("calorieTarget"));
-        col2.setPrefWidth(80);
-        
-        TableColumn<NutritionPlan, Integer> col3 = new TableColumn<>("Protéines");
-        col3.setCellValueFactory(new PropertyValueFactory<>("proteinTarget"));
-        col3.setPrefWidth(80);
-        
-        TableColumn<NutritionPlan, Integer> col4 = new TableColumn<>("Glucides");
-        col4.setCellValueFactory(new PropertyValueFactory<>("carbTarget"));
-        col4.setPrefWidth(80);
-        
-        TableColumn<NutritionPlan, Integer> col5 = new TableColumn<>("Lipides");
-        col5.setCellValueFactory(new PropertyValueFactory<>("fatTarget"));
-        col5.setPrefWidth(80);
-        
-        tablePlans.getColumns().addAll(col1, col2, col3, col4, col5);
-        tablePlans.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tablePlans.getColumns().addAll(
+                col("Objectif", "goalType"),
+                col("Calories", "calorieTarget"),
+                col("Protéines", "proteinTarget"),
+                col("Glucides", "carbTarget"),
+                col("Lipides", "fatTarget")
+        );
+        tablePlans.setPlaceholder(new Label("Aucun plan"));
     }
 
     private void setupMealTable() {
-        TableColumn<DailyMealLog, String> col1 = new TableColumn<>("Repas");
-        col1.setCellValueFactory(new PropertyValueFactory<>("mealType"));
-        col1.setPrefWidth(150);
-        
-        TableColumn<DailyMealLog, Integer> col2 = new TableColumn<>("Calories");
-        col2.setCellValueFactory(new PropertyValueFactory<>("calories"));
-        col2.setPrefWidth(80);
-        
-        TableColumn<DailyMealLog, Integer> col3 = new TableColumn<>("Protéines");
-        col3.setCellValueFactory(new PropertyValueFactory<>("protein"));
-        col3.setPrefWidth(80);
-        
-        TableColumn<DailyMealLog, Integer> col4 = new TableColumn<>("Glucides");
-        col4.setCellValueFactory(new PropertyValueFactory<>("carbs"));
-        col4.setPrefWidth(80);
-        
-        TableColumn<DailyMealLog, Integer> col5 = new TableColumn<>("Lipides");
-        col5.setCellValueFactory(new PropertyValueFactory<>("fat"));
-        col5.setPrefWidth(80);
-        
-        TableColumn<DailyMealLog, Integer> col6 = new TableColumn<>("Score");
-        col6.setCellValueFactory(new PropertyValueFactory<>("healthScore"));
-        col6.setPrefWidth(70);
-        
-        tableMeals.getColumns().addAll(col1, col2, col3, col4, col5, col6);
-        tableMeals.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-    }
-    
-    // ======================================================
-    // VALIDATION
-    // ======================================================
-    
-    private void setupValidation() {
-        // Validation numérique : seulement des chiffres
-        TextField[] numericFields = {pCal, pProt, pCarb, pFat, mCal, mProt, mCarb, mFat, mScore};
-        for (TextField f : numericFields) {
-            f.textProperty().addListener((obs, old, val) -> {
-                if (!val.matches("\\d*")) {
-                    f.setText(val.replaceAll("[^\\d]", ""));
-                }
-            });
-        }
-    }
-    
-    private boolean validatePlanForm() {
-        planError.setText("");
-        
-        if (pGoal.getText().trim().isEmpty()) {
-            planError.setText("❌ L'objectif est requis");
-            pGoal.requestFocus();
-            return false;
-        }
-        
-        if (pCal.getText().trim().isEmpty()) {
-            planError.setText("❌ Les calories sont requises");
-            pCal.requestFocus();
-            return false;
-        }
-        
-        try {
-            int cal = Integer.parseInt(pCal.getText());
-            if (cal <= 0) {
-                planError.setText("❌ Les calories doivent être > 0");
-                pCal.requestFocus();
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            planError.setText("❌ Calories doit être un nombre valide");
-            pCal.requestFocus();
-            return false;
-        }
-        
-        return true;
-    }
-    
-    // MÉTHODE DE VALIDATION CORRIGÉE POUR LES REPAS
-    private boolean validateMealForm() {
-        mealError.setText("");
-        
-        NutritionPlan selectedPlan = tablePlans.getSelectionModel().getSelectedItem();
-        if (selectedPlan == null) {
-            mealError.setText("❌ Veuillez sélectionner un plan nutritionnel d'abord");
-            return false;
-        }
-        
-        if (mName.getText().trim().isEmpty()) {
-            mealError.setText("❌ Le nom du repas est requis");
-            mName.requestFocus();
-            return false;
-        }
-        
-        // Vérification des champs numériques
-        if (mCal.getText().trim().isEmpty()) {
-            mealError.setText("❌ Les calories sont requises");
-            mCal.requestFocus();
-            return false;
-        }
-        
-        try {
-            int cal = Integer.parseInt(mCal.getText());
-            if (cal <= 0) {
-                mealError.setText("❌ Les calories doivent être > 0");
-                mCal.requestFocus();
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            mealError.setText("❌ Calories doit être un nombre valide");
-            mCal.requestFocus();
-            return false;
-        }
-        
-        return true;
-    }
-    
-    // ======================================================
-    // HANDLERS CRUD - CORRIGÉS
-    // ======================================================
-    
-    private void handleAddPlan() {
-        if (!validatePlanForm()) return;
-        
-        NutritionPlan plan = new NutritionPlan(
-            0,
-            safeParseInt(pCal.getText()),
-            safeParseInt(pProt.getText()),
-            safeParseInt(pCarb.getText()),
-            safeParseInt(pFat.getText()),
-            pGoal.getText()
+        tableMeals.getColumns().addAll(
+                col("Repas", "mealType"),
+                col("Calories", "calories"),
+                col("Protéines", "protein"),
+                col("Glucides", "carbs"),
+                col("Lipides", "fat"),
+                col("Score", "healthScore")
         );
-        
-        sPlan.ajouter(plan);
-        refreshPlans();
-        clearPlanForm();
-        showInfo("✅ Plan ajouté avec succès !");
+        tableMeals.setPlaceholder(new Label("Aucun repas"));
     }
-    
-    private void handleUpdatePlan() {
-        NutritionPlan selected = tablePlans.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert("Attention", "Veuillez sélectionner un plan à modifier");
+
+    private <T> TableColumn<T, ?> col(String title, String prop) {
+        TableColumn<T, Object> c = new TableColumn<>(title);
+        c.setCellValueFactory(new PropertyValueFactory<>(prop));
+        return c;
+    }
+
+    // ======================================================
+    // CRUD METHODS
+    // ======================================================
+
+    private void handleAddPlan() {
+        if (pGoal.getText().trim().isEmpty() || pCal.getText().trim().isEmpty()) {
+            planError.setText(" Remplissez les champs requis");
             return;
         }
         
-        if (!validatePlanForm()) return;
-        
+        NutritionPlan plan = new NutritionPlan(
+                0,
+                safeParseInt(pCal.getText()),
+                safeParseInt(pProt.getText()),
+                safeParseInt(pCarb.getText()),
+                safeParseInt(pFat.getText()),
+                pGoal.getText()
+        );
+        sPlan.ajouter(plan);
+        refreshPlans();
+        clearPlanForm();
+        showSuccess("Plan ajouté");
+    }
+
+    private void handleUpdatePlan() {
+        NutritionPlan selected = tablePlans.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("Sélectionnez un plan");
+            return;
+        }
+
         selected.setGoalType(pGoal.getText());
         selected.setCalorieTarget(safeParseInt(pCal.getText()));
         selected.setProteinTarget(safeParseInt(pProt.getText()));
         selected.setCarbTarget(safeParseInt(pCarb.getText()));
         selected.setFatTarget(safeParseInt(pFat.getText()));
-        
+
         sPlan.modifier(selected);
         refreshPlans();
-        showInfo("✏️ Plan modifié avec succès !");
+        showSuccess("Plan modifié");
     }
-    
+
     private void handleDeletePlan() {
         NutritionPlan selected = tablePlans.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Attention", "Veuillez sélectionner un plan à supprimer");
+            showAlert("Sélectionnez un plan");
             return;
         }
-        
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirmation");
-        confirm.setHeaderText("Supprimer le plan ?");
-        confirm.setContentText("Cette action supprimera également tous les repas associés !");
-        
-        if (confirm.showAndWait().get() == ButtonType.OK) {
+
+        if (confirm("Supprimer ce plan ?")) {
             sPlan.supprimer(selected.getId());
             refreshPlans();
             tableMeals.getItems().clear();
             clearPlanForm();
-            showInfo("🗑️ Plan supprimé !");
+            showSuccess("Plan supprimé");
         }
     }
-    
-    // MÉTHODE CORRIGÉE POUR AJOUTER UN REPAS
+
     private void handleAddMeal() {
-        if (!validateMealForm()) return;
-        
         NutritionPlan selectedPlan = tablePlans.getSelectionModel().getSelectedItem();
-        
-        DailyMealLog meal = new DailyMealLog(
-            0,
-            selectedPlan.getId(),
-            LocalDate.now().toString(),
-            mName.getText(),
-            safeParseInt(mCal.getText()),
-            safeParseInt(mProt.getText()),
-            safeParseInt(mCarb.getText()),
-            safeParseInt(mFat.getText()),
-            safeParseInt(mScore.getText()),
-            mNotes.getText()
-        );
-        
-        sMeal.ajouter(meal);
-        refreshMeals(selectedPlan.getId());
-        clearMealForm();
-        showInfo("✅ Repas ajouté avec succès !");
-    }
-    
-    private void handleUpdateMeal() {
-        DailyMealLog selected = tableMeals.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert("Attention", "Veuillez sélectionner un repas à modifier");
+        if (selectedPlan == null) {
+            mealError.setText(" Sélectionnez un plan");
             return;
         }
         
-        if (!validateMealForm()) return;
-        
+        if (mName.getText().trim().isEmpty() || mCal.getText().trim().isEmpty()) {
+            mealError.setText(" Nom et calories requis");
+            return;
+        }
+
+        DailyMealLog meal = new DailyMealLog(
+                0,
+                selectedPlan.getId(),
+                LocalDate.now().toString(),
+                mName.getText(),
+                safeParseInt(mCal.getText()),
+                safeParseInt(mProt.getText()),
+                safeParseInt(mCarb.getText()),
+                safeParseInt(mFat.getText()),
+                safeParseInt(mScore.getText()),
+                mNotes.getText()
+        );
+
+        sMeal.ajouter(meal);
+        refreshMeals(selectedPlan.getId());
+        clearMealForm();
+        showSuccess("Repas ajouté");
+    }
+
+    private void handleUpdateMeal() {
+        DailyMealLog selected = tableMeals.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            mealError.setText("Sélectionnez un repas");
+            return;
+        }
+
         selected.setMealType(mName.getText());
         selected.setCalories(safeParseInt(mCal.getText()));
         selected.setProtein(safeParseInt(mProt.getText()));
@@ -524,55 +370,48 @@ public class MainGUI extends Application {
         selected.setFat(safeParseInt(mFat.getText()));
         selected.setHealthScore(safeParseInt(mScore.getText()));
         selected.setNotes(mNotes.getText());
-        
+
         sMeal.modifier(selected);
         refreshMeals(selected.getPlanId());
-        showInfo("✏️ Repas modifié avec succès !");
+        showSuccess("Repas modifié");
     }
-    
+
     private void handleDeleteMeal() {
         DailyMealLog selected = tableMeals.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Attention", "Veuillez sélectionner un repas à supprimer");
+            mealError.setText(" Sélectionnez un repas");
             return;
         }
-        
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirmation");
-        confirm.setHeaderText("Supprimer le repas ?");
-        
-        if (confirm.showAndWait().get() == ButtonType.OK) {
+
+        if (confirm("Supprimer ce repas ?")) {
             sMeal.supprimer(selected.getId());
             refreshMeals(selected.getPlanId());
             clearMealForm();
-            showInfo("🗑️ Repas supprimé !");
+            showSuccess("Repas supprimé");
         }
     }
-    
+
     // ======================================================
-    // UTILITAIRES
+    // UTILS
     // ======================================================
-    
-    // MÉTHODE SÉCURISÉE POUR PARSER LES ENTIERS
+
     private int safeParseInt(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            return 0;
-        }
+        if (text == null || text.trim().isEmpty()) return 0;
         try {
             return Integer.parseInt(text.trim());
         } catch (NumberFormatException e) {
             return 0;
         }
     }
-    
-    private void refreshPlans() {
-        tablePlans.getItems().setAll(sPlan.getAll());
+
+    private void refreshPlans() { 
+        tablePlans.getItems().setAll(sPlan.getAll()); 
     }
     
-    private void refreshMeals(int planId) {
-        tableMeals.getItems().setAll(sMeal.getByPlan(planId));
+    private void refreshMeals(int id) { 
+        tableMeals.getItems().setAll(sMeal.getByPlan(id)); 
     }
-    
+
     private void clearPlanForm() {
         pGoal.clear();
         pCal.clear();
@@ -581,7 +420,7 @@ public class MainGUI extends Application {
         pFat.clear();
         planError.setText("");
     }
-    
+
     private void clearMealForm() {
         mName.clear();
         mCal.clear();
@@ -592,37 +431,47 @@ public class MainGUI extends Application {
         mNotes.clear();
         mealError.setText("");
     }
-    
-    private void styleButton(Button btn, String color) {
-        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + darken(color) + "; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;"));
+
+    private void setupValidation() {
+        TextField[] numeric = {pCal, pProt, pCarb, pFat, mCal, mProt, mCarb, mFat, mScore};
+        for (TextField f : numeric) {
+            f.textProperty().addListener((obs, old, val) -> {
+                if (!val.matches("\\d*")) f.setText(val.replaceAll("[^\\d]", ""));
+            });
+        }
     }
-    
+
+    private void styleButton(Button btn, String color) {
+        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 10 15; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + darken(color) + "; -fx-text-fill: white; -fx-padding: 10 15; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 10 15; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;"));
+    }
+
     private String darken(String color) {
         switch(color) {
             case "#4CAF50": return "#45a049";
             case "#2196F3": return "#1976D2";
             case "#f44336": return "#d32f2f";
-            case "#9E9E9E": return "#757575";
             default: return color;
         }
     }
-    
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+
+    private void showSuccess(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.show();
     }
-    
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+
+    private void showAlert(String msg) {
+        Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.show();
+    }
+
+    private boolean confirm(String msg) {
+        return new Alert(Alert.AlertType.CONFIRMATION, msg, ButtonType.OK, ButtonType.CANCEL).showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 
     public static void main(String[] args) {

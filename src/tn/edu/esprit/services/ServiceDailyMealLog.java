@@ -25,16 +25,17 @@ public class ServiceDailyMealLog {
             
             ps.executeUpdate();
             
+            // Récupérer l'ID généré
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {
                 m.setId(rs.getInt(1));
             }
-            System.out.println("✅ Repas ajouté !");
+            
+            System.out.println("Repas ajouté avec plan_id: " + m.getPlanId()); // ← LOG
         } catch (SQLException e) { 
             e.printStackTrace(); 
         }
     }
-
     // MODIFIER
     public void modifier(DailyMealLog m) {
         String req = "UPDATE daily_meal_log SET meal_type=?, calories=?, protein_g=?, carbs_g=?, fat_g=?, health_score=?, notes=? WHERE id=?";
@@ -48,7 +49,7 @@ public class ServiceDailyMealLog {
             ps.setString(7, m.getNotes());
             ps.setInt(8, m.getId());
             ps.executeUpdate();
-            System.out.println("✏️ Repas modifié !");
+            System.out.println(" Repas modifié !");
         } catch (SQLException e) { 
             e.printStackTrace(); 
         }
@@ -60,7 +61,7 @@ public class ServiceDailyMealLog {
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("🗑️ Repas supprimé !");
+            System.out.println(" Repas supprimé !");
         } catch (SQLException e) { 
             e.printStackTrace(); 
         }
@@ -69,10 +70,13 @@ public class ServiceDailyMealLog {
     // GET BY PLAN
     public List<DailyMealLog> getByPlan(int planId) {
         List<DailyMealLog> list = new ArrayList<>();
-        String req = "SELECT * FROM daily_meal_log WHERE plan_id=? ORDER BY date DESC";
+        String req = "SELECT * FROM daily_meal_log WHERE plan_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setInt(1, planId);
             ResultSet rs = ps.executeQuery();
+            
+            System.out.println("Recherche repas pour plan_id: " + planId); // ← LOG
+            
             while (rs.next()) {
                 DailyMealLog m = new DailyMealLog(
                     rs.getInt("id"),
@@ -87,13 +91,15 @@ public class ServiceDailyMealLog {
                     rs.getString("notes")
                 );
                 list.add(m);
+                System.out.println("Repas trouvé: " + m.getMealType()); // ← LOG
             }
+            
+            System.out.println("Total repas trouvés: " + list.size()); // ← LOG
         } catch (SQLException e) { 
             e.printStackTrace(); 
         }
         return list;
     }
-    
     // GET ONE
     public DailyMealLog getOne(int id) {
         String req = "SELECT * FROM daily_meal_log WHERE id=?";
