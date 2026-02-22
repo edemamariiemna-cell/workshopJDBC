@@ -6,7 +6,10 @@ public class DailyMealLog {
 
     public DailyMealLog() {}
     
-    public DailyMealLog(int id, int planId, String date, String mealType, int calories, int protein, int carbs, int fat, int healthScore, String notes) {
+    // Constructeur complet
+    public DailyMealLog(int id, int planId, String date, String mealType, 
+                       int calories, int protein, int carbs, int fat, 
+                       int healthScore, String notes) {
         this.id = id;
         this.planId = planId;
         this.date = date;
@@ -18,8 +21,23 @@ public class DailyMealLog {
         this.healthScore = healthScore;
         this.notes = notes;
     }
+    
+    // Constructeur sans ID (pour ajout)
+    public DailyMealLog(int planId, String date, String mealType, 
+                       int calories, int protein, int carbs, int fat, 
+                       int healthScore, String notes) {
+        this.planId = planId;
+        this.date = date;
+        this.mealType = mealType;
+        this.calories = calories;
+        this.protein = protein;
+        this.carbs = carbs;
+        this.fat = fat;
+        this.healthScore = healthScore;
+        this.notes = notes;
+    }
 
-    // --- GETTERS ---
+    // GETTERS
     public int getId() { return id; }
     public int getPlanId() { return planId; }
     public String getMealType() { return mealType; }
@@ -31,7 +49,7 @@ public class DailyMealLog {
     public String getDate() { return date; }
     public int getHealthScore() { return healthScore; }
 
-    // --- SETTERS AJOUTÉS (Indispensables pour le CRUD Modifier) ---
+    // SETTERS
     public void setId(int id) { this.id = id; }
     public void setPlanId(int planId) { this.planId = planId; }
     public void setMealType(String mealType) { this.mealType = mealType; }
@@ -42,4 +60,10 @@ public class DailyMealLog {
     public void setNotes(String notes) { this.notes = notes; }
     public void setDate(String date) { this.date = date; }
     public void setHealthScore(int healthScore) { this.healthScore = healthScore; }
+    
+    @Override
+    public String toString() {
+        return "DailyMealLog{id=" + id + ", mealType=" + mealType + 
+               ", calories=" + calories + "}";
+    }
 }

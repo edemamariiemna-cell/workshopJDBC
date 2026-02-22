@@ -9,51 +9,114 @@ import java.util.List;
 public class ServiceDailyMealLog {
     private Connection cnx = DataSource.getInstance().getConnection();
 
+    // AJOUTER
     public void ajouter(DailyMealLog m) {
-        String req = "INSERT INTO daily_meal_log (plan_id, date, meal_type, calories, protein_g, carbs_g, fat_g, health_score, notes) VALUES (?, NOW(), ?, ?, ?, ?, ?, 0, ?)";
-        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+        String req = "INSERT INTO daily_meal_log (plan_id, date, meal_type, calories, protein_g, carbs_g, fat_g, health_score, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = cnx.prepareStatement(req, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, m.getPlanId());
-            ps.setString(2, m.getMealType());
-            ps.setInt(3, m.getCalories());
-            ps.setInt(4, m.getProtein());
-            ps.setInt(5, m.getCarbs());
-            ps.setInt(6, m.getFat());
-            ps.setString(7, m.getNotes());
+            ps.setString(2, m.getDate());
+            ps.setString(3, m.getMealType());
+            ps.setInt(4, m.getCalories());
+            ps.setInt(5, m.getProtein());
+            ps.setInt(6, m.getCarbs());
+            ps.setInt(7, m.getFat());
+            ps.setInt(8, m.getHealthScore());
+            ps.setString(9, m.getNotes());
+            
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                m.setId(rs.getInt(1));
+            }
+            System.out.println("✅ Repas ajouté !");
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 
+    // MODIFIER
     public void modifier(DailyMealLog m) {
-        String req = "UPDATE daily_meal_log SET meal_type=?, calories=?, protein_g=?, carbs_g=?, fat_g=?, notes=? WHERE id=?";
+        String req = "UPDATE daily_meal_log SET meal_type=?, calories=?, protein_g=?, carbs_g=?, fat_g=?, health_score=?, notes=? WHERE id=?";
         try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setString(1, m.getMealType());
             ps.setInt(2, m.getCalories());
             ps.setInt(3, m.getProtein());
             ps.setInt(4, m.getCarbs());
             ps.setInt(5, m.getFat());
-            ps.setString(6, m.getNotes());
-            ps.setInt(7, m.getId());
+            ps.setInt(6, m.getHealthScore());
+            ps.setString(7, m.getNotes());
+            ps.setInt(8, m.getId());
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            System.out.println("✏️ Repas modifié !");
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 
+    // SUPPRIMER
     public void supprimer(int id) {
-        try (PreparedStatement ps = cnx.prepareStatement("DELETE FROM daily_meal_log WHERE id=?")) {
+        String req = "DELETE FROM daily_meal_log WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+            System.out.println("🗑️ Repas supprimé !");
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 
+    // GET BY PLAN
     public List<DailyMealLog> getByPlan(int planId) {
         List<DailyMealLog> list = new ArrayList<>();
-        try (PreparedStatement ps = cnx.prepareStatement("SELECT * FROM daily_meal_log WHERE plan_id=?")) {
+        String req = "SELECT * FROM daily_meal_log WHERE plan_id=? ORDER BY date DESC";
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
             ps.setInt(1, planId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new DailyMealLog(rs.getInt("id"), rs.getInt("plan_id"), rs.getString("date"), rs.getString("meal_type"),
-                        rs.getInt("calories"), rs.getInt("protein_g"), rs.getInt("carbs_g"), rs.getInt("fat_g"), rs.getInt("health_score"), rs.getString("notes")));
+                DailyMealLog m = new DailyMealLog(
+                    rs.getInt("id"),
+                    rs.getInt("plan_id"),
+                    rs.getString("date"),
+                    rs.getString("meal_type"),
+                    rs.getInt("calories"),
+                    rs.getInt("protein_g"),
+                    rs.getInt("carbs_g"),
+                    rs.getInt("fat_g"),
+                    rs.getInt("health_score"),
+                    rs.getString("notes")
+                );
+                list.add(m);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
         return list;
+    }
+    
+    // GET ONE
+    public DailyMealLog getOne(int id) {
+        String req = "SELECT * FROM daily_meal_log WHERE id=?";
+        try (PreparedStatement ps = cnx.prepareStatement(req)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new DailyMealLog(
+                    rs.getInt("id"),
+                    rs.getInt("plan_id"),
+                    rs.getString("date"),
+                    rs.getString("meal_type"),
+                    rs.getInt("calories"),
+                    rs.getInt("protein_g"),
+                    rs.getInt("carbs_g"),
+                    rs.getInt("fat_g"),
+                    rs.getInt("health_score"),
+                    rs.getString("notes")
+                );
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
+        return null;
     }
 }
