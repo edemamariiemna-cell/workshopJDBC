@@ -15,9 +15,9 @@ public class DataSource {
     private DataSource() {
         try {
             cnx = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("✅ Connexion à la base de données établie!");
+            System.out.println(" Connexion à la base de données établie!");
         } catch (SQLException ex) {
-            System.out.println("❌ Erreur de connexion: " + ex.getMessage());
+            System.out.println(" Erreur de connexion: " + ex.getMessage());
         }
     }
     

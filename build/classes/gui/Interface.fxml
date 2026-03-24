@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.NutritionController">
+   <children>
+      <VBox prefWidth="220.0" spacing="15.0" style="-fx-background-color: #2c3e50;">
+         <padding>
+            <Insets bottom="20.0" left="15.0" right="15.0" top="30.0" />
+         </padding>
+         <children>
+            <Label style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;" text="NUTRITRACK" />
+            <Separator />
+            <Button maxWidth="Infinity" onAction="#showPlans" text="Plans Nutritionnels" />
+            <Button maxWidth="Infinity" onAction="#showFoodItems" text="Journal des Repas" />
+            <Button maxWidth="Infinity" onAction="#showHistory" text="Historique" />
+         </children>
+      </VBox>
+
+      <StackPane HBox.hgrow="ALWAYS">
+         <children>
+            
+            <!-- VUE PLANS -->
+            <VBox fx:id="planView" spacing="15.0" visible="true" managed="true">
+               <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
+               <children>
+                  <Label text="Gestion des Plans Nutritionnels" />
+                  <Separator />
+                  
+                  <GridPane hgap="10.0" vgap="10.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" prefWidth="150.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" prefWidth="150.0" />
+                     </columnConstraints>
+                     <children>
+                        <ComboBox fx:id="pGoalCombo" promptText="Objectif" GridPane.columnIndex="0" />
+                        <TextField fx:id="pCal" promptText="Calories cibles" GridPane.columnIndex="1" />
+                        <TextField fx:id="pProt" promptText="Proteines (g)" GridPane.rowIndex="1" />
+                        <TextField fx:id="pCarb" promptText="Glucides (g)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="pFat" promptText="Lipides (g)" GridPane.rowIndex="2" />
+                     </children>
+                  </GridPane>
+                  
+                  <HBox spacing="10.0">
+                     <children>
+                        <Button onAction="#handleAddPlan" text="Ajouter" />
+                        <Button onAction="#handleUpdatePlan" text="Modifier" />
+                        <Button onAction="#handleDeletePlan" text="Supprimer" />
+                     </children>
+                  </HBox>
+                  
+                  <TableView fx:id="tablePlans">
+                     <columns>
+                        <TableColumn fx:id="colId" text="ID" />
+                        <TableColumn fx:id="colGoal" text="Objectif" />
+                        <TableColumn fx:id="colCal" text="Cal/j" />
+                        <TableColumn fx:id="colProt" text="Prot" />
+                        <TableColumn fx:id="colCarb" text="Gluc" />
+                        <TableColumn fx:id="colFat" text="Lip" />
+                        <TableColumn fx:id="colAdherence" text="Adherence" />
+                        <TableColumn fx:id="colStatus" text="Statut" />
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
+
+            <!-- VUE FOOD ITEMS -->
+            <VBox fx:id="foodView" spacing="15.0" visible="false" managed="false">
+               <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
+               <children>
+                  <Label text="Journal des Repas" />
+                  <Separator />
+                  <Label fx:id="selectedPlanLabel" text="Selectionnez d'abord un plan" />
+                  
+                  <GridPane hgap="10.0" vgap="10.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" prefWidth="150.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" prefWidth="150.0" />
+                     </columnConstraints>
+                     <children>
+                        <TextField fx:id="fName" promptText="Nom aliment" GridPane.columnSpan="2" />
+                        <TextField fx:id="fCalPer100" promptText="Cal/100g" GridPane.rowIndex="1" />
+                        <TextField fx:id="fProtPer100" promptText="Prot/100g" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="fCarbPer100" promptText="Gluc/100g" GridPane.rowIndex="2" />
+                        <TextField fx:id="fFatPer100" promptText="Lip/100g" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <TextField fx:id="fQuantity" promptText="Quantite (g)" GridPane.rowIndex="3" />
+                        <ComboBox fx:id="fMealType" promptText="Type repas" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <ComboBox fx:id="fCategory" promptText="Categorie" GridPane.rowIndex="4" />
+                        <TextField fx:id="fAllergens" promptText="Allergenes" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <DatePicker fx:id="fMealDate" promptText="Date" GridPane.rowIndex="5" GridPane.columnSpan="2" />
+                     </children>
+                  </GridPane>
+                  
+                  <HBox spacing="10.0">
+                     <children>
+                        <Button onAction="#handleAddFood" text="Ajouter" />
+                        <Button onAction="#handleUpdateFood" text="Modifier" />
+                        <Button onAction="#handleDeleteFood" text="Supprimer" />
+                     </children>
+                  </HBox>
+                  
+                  <TableView fx:id="tableFoods">
+                     <columns>
+                        <TableColumn fx:id="colFoodName" text="Aliment" />
+                        <TableColumn fx:id="colFoodCal" text="Cal/100g" />
+                        <TableColumn fx:id="colFoodQuantity" text="Qte (g)" />
+                        <TableColumn fx:id="colTotalCal" text="Total Cal" />
+                        <TableColumn fx:id="colMealType" text="Repas" />
+                        <TableColumn fx:id="colFoodDate" text="Date" />
+                        <TableColumn fx:id="colAllergens" text="Allergenes" />
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
+
+            <!-- VUE HISTORIQUE -->
+            <VBox fx:id="historyView" spacing="15.0" visible="false" managed="false">
+               <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
+               <children>
+                  <Label text="Historique des Scores" />
+                  <Separator />
+                  <Label fx:id="historyPlanLabel" text="Selectionnez d'abord un plan" />
+                  
+                  <HBox spacing="20.0">
+                     <children>
+                        <Label text="Score actuel :" />
+                        <Label fx:id="currentScoreLabel" text="0%" />
+                        <Label text="Niveau :" />
+                        <Label fx:id="currentLevelLabel" text="bronze" />
+                     </children>
+                  </HBox>
+                  
+                  <TableView fx:id="tableHistory">
+                     <columns>
+                        <TableColumn fx:id="colHistoryDate" text="Date" />
+                        <TableColumn fx:id="colHistoryScore" text="Score %" />
+                        <TableColumn fx:id="colHistoryCalories" text="Calories" />
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
+
+         </children>
+      </StackPane>
+   </children>
+</HBox>
